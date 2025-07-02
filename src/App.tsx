@@ -1,0 +1,76 @@
+import React, { useState } from 'react';
+import { Provider } from 'react-redux';
+import { store } from './store';
+import { ProjectSidebar } from './components/Sidebar';
+import { Dashboard } from './components/Dashboard';
+import { Projects } from './components/Projects';
+import { Tasks } from './components/Tasks';
+import { Teams } from './components/Teams';
+import { cn } from './lib/utils';
+
+function App() {
+  const [currentSection, setCurrentSection] = useState('dashboard');
+
+  const renderCurrentSection = () => {
+    switch (currentSection) {
+      case 'dashboard':
+        return <Dashboard />;
+      case 'projects':
+        return <Projects />;
+      case 'tasks':
+        return <Tasks />;
+      case 'teams':
+        return <Teams />;
+      case 'calendar':
+        return (
+          <div className="flex flex-1 flex-col gap-6 p-6">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Calendar</h1>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <p className="text-gray-600 dark:text-gray-400">Calendar view coming soon...</p>
+            </div>
+          </div>
+        );
+      case 'reports':
+        return (
+          <div className="flex flex-1 flex-col gap-6 p-6">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Reports</h1>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <p className="text-gray-600 dark:text-gray-400">Reports and analytics coming soon...</p>
+            </div>
+          </div>
+        );
+      case 'settings':
+        return (
+          <div className="flex flex-1 flex-col gap-6 p-6">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Settings</h1>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <p className="text-gray-600 dark:text-gray-400">Settings panel coming soon...</p>
+            </div>
+          </div>
+        );
+      default:
+        return <Dashboard />;
+    }
+  };
+
+  return (
+    <Provider store={store}>
+      <div className={cn(
+        "mx-auto flex w-full max-w-full flex-1 flex-col overflow-hidden bg-gray-50 dark:bg-gray-900 md:flex-row",
+        "h-screen"
+      )}>
+        <ProjectSidebar 
+          onNavigate={setCurrentSection} 
+          currentSection={currentSection}
+        />
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <div className="flex h-full w-full flex-1 flex-col overflow-y-auto bg-white dark:bg-gray-900">
+            {renderCurrentSection()}
+          </div>
+        </div>
+      </div>
+    </Provider>
+  );
+}
+
+export default App;
