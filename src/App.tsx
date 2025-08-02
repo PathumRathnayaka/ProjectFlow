@@ -6,6 +6,7 @@ import { Dashboard } from './components/Dashboard';
 import { Projects } from './components/Projects';
 import { Tasks } from './components/Tasks';
 import { Teams } from './components/Teams';
+import { Calendar } from './components/Calender'; // Add this import
 import { cn } from './lib/utils';
 
 function App() {
@@ -22,14 +23,7 @@ function App() {
       case 'teams':
         return <Teams />;
       case 'calendar':
-        return (
-          <div className="flex flex-1 flex-col gap-6 p-6">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Calendar</h1>
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-              <p className="text-gray-600 dark:text-gray-400">Calendar view coming soon...</p>
-            </div>
-          </div>
-        );
+        return <Calendar />; // Replace the placeholder with the actual component
       case 'reports':
         return (
           <div className="flex flex-1 flex-col gap-6 p-6">
@@ -60,7 +54,7 @@ function App() {
         "h-screen"
       )}>
         <ProjectSidebar 
-          onNavigate={setCurrentSection} 
+          onNavigate={setCurrentSection}
           currentSection={currentSection}
         />
         <div className="flex flex-1 flex-col overflow-hidden">
