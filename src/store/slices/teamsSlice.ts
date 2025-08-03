@@ -12,6 +12,18 @@ export interface User {
   joinedAt: string;
 }
 
+export interface Invitation {
+  id: string;
+  email: string;
+  invitedBy: string;
+  invitedAt: string;
+  status: 'pending' | 'accepted' | 'declined' | 'expired';
+  role: 'admin' | 'manager' | 'member' | 'viewer';
+  teamId?: string;
+  message?: string;
+  expiresAt: string;
+}
+
 export interface Team {
   id: string;
   name: string;
@@ -25,6 +37,7 @@ export interface Team {
 interface TeamsState {
   teams: Team[];
   users: User[];
+  invitations: Invitation[];
   loading: boolean;
   error: string | null;
 }
@@ -127,6 +140,40 @@ const initialState: TeamsState = {
       joinedAt: '2024-01-12T00:00:00Z',
     },
   ],
+  invitations: [
+    {
+      id: '1',
+      email: 'john.doe@example.com',
+      invitedBy: '1',
+      invitedAt: '2024-01-20T10:00:00Z',
+      status: 'accepted',
+      role: 'member',
+      teamId: '1',
+      message: 'Welcome to our design team!',
+      expiresAt: '2024-02-20T10:00:00Z',
+    },
+    {
+      id: '2',
+      email: 'jane.smith@example.com',
+      invitedBy: '2',
+      invitedAt: '2024-01-22T14:30:00Z',
+      status: 'pending',
+      role: 'member',
+      message: 'Join our development team and help us build amazing products!',
+      expiresAt: '2024-02-22T14:30:00Z',
+    },
+    {
+      id: '3',
+      email: 'bob.wilson@example.com',
+      invitedBy: '3',
+      invitedAt: '2024-01-25T09:15:00Z',
+      status: 'accepted',
+      role: 'member',
+      teamId: '3',
+      message: 'Looking forward to having you on our marketing team!',
+      expiresAt: '2024-02-25T09:15:00Z',
+    },
+  ],
   loading: false,
   error: null,
 };
@@ -169,6 +216,46 @@ const teamsSlice = createSlice({
     deleteUser: (state, action: PayloadAction<string>) => {
       state.users = state.users.filter(u => u.id !== action.payload);
     },
+    sendInvitation: (state, action: PayloadAction<Omit<Invitation, 'id' | 'invitedAt' | 'expiresAt'>>) => {
+      const newInvitation: Invitation = {
+        ...action.payload,
+        id: Date.now().toString(),
+        invitedAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
+      };
+      state.invitations.push(newInvitation);
+    },
+    updateInvitation: (state, action: PayloadAction<Partial<Invitation> & { id: string }>) => {
+      const index = state.invitations.findIndex(i => i.id === action.payload.id);
+      if (index !== -1) {
+        state.invitations[index] = { ...state.invitations[index], ...action.payload };
+      }
+    },
+    deleteInvitation: (state, action: PayloadAction<string>) => {
+      state.invitations = state.invitations.filter(i => i.id !== action.payload);
+    },
+    acceptInvitation: (state, action: PayloadAction<{ invitationId: string; userData: Omit<User, 'id' | 'joinedAt'> }>) => {
+      const invitation = state.invitations.find(i => i.id === action.payload.invitationId);
+      if (invitation) {
+        invitation.status = 'accepted';
+        
+        // Create new user from accepted invitation
+        const newUser: User = {
+          ...action.payload.userData,
+          id: Date.now().toString(),
+          joinedAt: new Date().toISOString(),
+          role: invitation.role,
+          teamId: invitation.teamId || '',
+        };
+        state.users.push(newUser);
+      }
+    },
+    assignUserToTeam: (state, action: PayloadAction<{ userId: string; teamId: string }>) => {
+      const user = state.users.find(u => u.id === action.payload.userId);
+      if (user) {
+        user.teamId = action.payload.teamId;
+      }
+    },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
     },
@@ -185,6 +272,11 @@ export const {
   addUser,
   updateUser,
   deleteUser,
+  sendInvitation,
+  updateInvitation,
+  deleteInvitation,
+  acceptInvitation,
+  assignUserToTeam,
   setLoading,
   setError,
 } = teamsSlice.actions;
