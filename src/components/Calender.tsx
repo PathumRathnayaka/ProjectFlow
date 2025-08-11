@@ -1,125 +1,45 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Users, FileText } from 'lucide-react';
+import {
+  ProjectEvent,
+  ViewMode,
+  SortBy,
+  setSelectedDate,
+  setViewMode,
+  setSortBy,
+  navigateMonth,
+  navigateYear,
+  clearSelectedDate,
+} from '../store/slices/calenderSlice';
 
-interface ProjectEvent {
-  id: string;
-  title: string;
-  type: 'instagram-post' | 'website' | 'pricing-page' | 'presentation' | 'platform' | 'design';
-  date: Date;
-  time: string;
-  duration: string;
-  status: 'completed' | 'in-progress' | 'upcoming';
-  color: string;
-  participants?: number;
+// Assuming you have a RootState type defined elsewhere
+interface RootState {
+  calendar: {
+    events: ProjectEvent[];
+    currentDate: string;
+    selectedDate: string | null;
+    viewMode: ViewMode;
+    sortBy: SortBy;
+    loading: boolean;
+    error: string | null;
+  };
 }
 
-const mockEvents: ProjectEvent[] = [
-  {
-    id: '1',
-    title: 'StrataScratch - Instagram Post',
-    type: 'instagram-post',
-    date: new Date(2022, 4, 5), // May 5, 2022
-    time: '00:34',
-    duration: '2 hours',
-    status: 'completed',
-    color: 'bg-blue-500',
-    participants: 2
-  },
-  {
-    id: '2',
-    title: 'StrataScratch - Instagram Post #2',
-    type: 'instagram-post',
-    date: new Date(2022, 4, 8), // May 8, 2022
-    time: '10:00',
-    duration: '1 hour',
-    status: 'completed',
-    color: 'bg-orange-500',
-    participants: 1
-  },
-  {
-    id: '3',
-    title: 'StrataScratch - Instagram Post #3',
-    type: 'instagram-post',
-    date: new Date(2022, 4, 25), // May 25, 2022
-    time: '14:00',
-    duration: '3 hours',
-    status: 'completed',
-    color: 'bg-green-500',
-    participants: 3
-  },
-  {
-    id: '4',
-    title: 'New Website Header Image',
-    type: 'website',
-    date: new Date(2022, 4, 12), // May 12, 2022
-    time: '09:30',
-    duration: '4 hours',
-    status: 'in-progress',
-    color: 'bg-purple-500',
-    participants: 1
-  },
-  {
-    id: '5',
-    title: 'StrataScratch - New Pricing Page',
-    type: 'pricing-page',
-    date: new Date(2022, 4, 15), // May 15, 2022
-    time: '11:00',
-    duration: '6 hours',
-    status: 'in-progress',
-    color: 'bg-emerald-500',
-    participants: 2
-  },
-  {
-    id: '6',
-    title: 'Strata Scratch - Behance Presentation',
-    type: 'presentation',
-    date: new Date(2022, 4, 20), // May 20, 2022
-    time: '16:00',
-    duration: '2 hours',
-    status: 'upcoming',
-    color: 'bg-yellow-500',
-    participants: 4
-  },
-  {
-    id: '7',
-    title: 'Testing (Platform Pages)',
-    type: 'platform',
-    date: new Date(2022, 4, 18), // May 18, 2022
-    time: '13:00',
-    duration: '5 hours',
-    status: 'in-progress',
-    color: 'bg-indigo-500',
-    participants: 2
-  },
-  {
-    id: '8',
-    title: 'StrataScratch - Design All Pages',
-    type: 'design',
-    date: new Date(2022, 4, 17), // May 17, 2022
-    time: '10:30',
-    duration: '8 hours',
-    status: 'in-progress',
-    color: 'bg-teal-500',
-    participants: 3
-  },
-  {
-    id: '9',
-    title: 'StrataScratch - Behance Presentation',
-    type: 'presentation',
-    date: new Date(2022, 4, 22), // May 22, 2022
-    time: '15:00',
-    duration: '3 hours',
-    status: 'completed',
-    color: 'bg-red-500',
-    participants: 2
-  }
-];
-
 const Calendar: React.FC = () => {
-  const [currentDate, setCurrentDate] = useState(new Date(2022, 4, 1)); // May 2022
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [viewMode, setViewMode] = useState<'chronology' | 'calendar'>('chronology');
-  const [sortBy, setSortBy] = useState('default');
+  const dispatch = useDispatch();
+  const {
+    events,
+    currentDate,
+    selectedDate,
+    viewMode,
+    sortBy,
+    loading,
+    error
+  } = useSelector((state: RootState) => state.calendar);
+
+  const currentDateObj = new Date(currentDate);
+  const selectedDateObj = selectedDate ? new Date(selectedDate) : null;
 
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -128,55 +48,59 @@ const Calendar: React.FC = () => {
 
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  const navigateMonth = (direction: 'prev' | 'next') => {
-    setCurrentDate(prev => {
-      const newDate = new Date(prev);
-      if (direction === 'prev') {
-        newDate.setMonth(prev.getMonth() - 1);
-      } else {
-        newDate.setMonth(prev.getMonth() + 1);
-      }
-      return newDate;
-    });
+  const handleNavigateMonth = (direction: 'prev' | 'next') => {
+    dispatch(navigateMonth(direction));
   };
 
-  const navigateYear = (direction: 'prev' | 'next') => {
-    setCurrentDate(prev => {
-      const newDate = new Date(prev);
-      if (direction === 'prev') {
-        newDate.setFullYear(prev.getFullYear() - 1);
-      } else {
-        newDate.setFullYear(prev.getFullYear() + 1);
-      }
-      return newDate;
-    });
+  const handleNavigateYear = (direction: 'prev' | 'next') => {
+    dispatch(navigateYear(direction));
+  };
+
+  const handleDateSelect = (date: Date) => {
+    const dateStr = date.toISOString();
+    if (selectedDate === dateStr) {
+      dispatch(clearSelectedDate());
+    } else {
+      dispatch(setSelectedDate(dateStr));
+    }
+  };
+
+  const handleViewModeChange = (mode: ViewMode) => {
+    dispatch(setViewMode(mode));
+  };
+
+  const handleSortByChange = (sort: SortBy) => {
+    dispatch(setSortBy(sort));
   };
 
   const getEventsForDate = (date: Date) => {
-    return mockEvents.filter(event => 
-      event.date.getDate() === date.getDate() &&
-      event.date.getMonth() === date.getMonth() &&
-      event.date.getFullYear() === date.getFullYear()
-    );
+    return events.filter(event => {
+      const eventDate = new Date(event.date);
+      return eventDate.getDate() === date.getDate() &&
+        eventDate.getMonth() === date.getMonth() &&
+        eventDate.getFullYear() === date.getFullYear();
+    });
   };
 
   const getFilteredAndSortedEvents = () => {
-    let filteredEvents = mockEvents.filter(event => 
-      event.date.getMonth() === currentDate.getMonth() &&
-      event.date.getFullYear() === currentDate.getFullYear()
-    );
+    let filteredEvents = events.filter(event => {
+      const eventDate = new Date(event.date);
+      return eventDate.getMonth() === currentDateObj.getMonth() &&
+        eventDate.getFullYear() === currentDateObj.getFullYear();
+    });
 
-    if (selectedDate) {
-      filteredEvents = filteredEvents.filter(event => 
-        event.date.getDate() === selectedDate.getDate() &&
-        event.date.getMonth() === selectedDate.getMonth() &&
-        event.date.getFullYear() === selectedDate.getFullYear()
-      );
+    if (selectedDateObj) {
+      filteredEvents = filteredEvents.filter(event => {
+        const eventDate = new Date(event.date);
+        return eventDate.getDate() === selectedDateObj.getDate() &&
+          eventDate.getMonth() === selectedDateObj.getMonth() &&
+          eventDate.getFullYear() === selectedDateObj.getFullYear();
+      });
     }
 
     switch (sortBy) {
       case 'date':
-        return filteredEvents.sort((a, b) => a.date.getTime() - b.date.getTime());
+        return filteredEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
       case 'type':
         return filteredEvents.sort((a, b) => a.type.localeCompare(b.type));
       case 'status':
@@ -187,8 +111,8 @@ const Calendar: React.FC = () => {
   };
 
   const getDaysInMonth = () => {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
+    const year = currentDateObj.getFullYear();
+    const month = currentDateObj.getMonth();
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
@@ -255,6 +179,22 @@ const Calendar: React.FC = () => {
            date1.getFullYear() === date2.getFullYear();
   };
 
+  if (loading) {
+    return (
+      <div className="flex flex-1 items-center justify-center bg-gray-900 text-white min-h-screen">
+        <div className="text-lg">Loading calendar...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-1 items-center justify-center bg-gray-900 text-white min-h-screen">
+        <div className="text-lg text-red-400">Error: {error}</div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-1 flex-col gap-6 p-6 bg-gray-900 text-white min-h-screen">
       {/* Header */}
@@ -263,7 +203,7 @@ const Calendar: React.FC = () => {
           <h1 className="text-2xl font-bold">Calendar</h1>
           <div className="flex items-center gap-2 bg-gray-800 rounded-lg p-1">
             <button
-              onClick={() => setViewMode('chronology')}
+              onClick={() => handleViewModeChange('chronology')}
               className={`px-3 py-1 rounded text-sm ${
                 viewMode === 'chronology' ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white'
               }`}
@@ -271,7 +211,7 @@ const Calendar: React.FC = () => {
               Chronology
             </button>
             <button
-              onClick={() => setViewMode('calendar')}
+              onClick={() => handleViewModeChange('calendar')}
               className={`px-3 py-1 rounded text-sm ${
                 viewMode === 'calendar' ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white'
               }`}
@@ -284,16 +224,16 @@ const Calendar: React.FC = () => {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <button 
-              onClick={() => navigateMonth('prev')}
+              onClick={() => handleNavigateMonth('prev')}
               className="p-2 hover:bg-gray-800 rounded"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <span className="font-medium min-w-[120px] text-center">
-              {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+              {monthNames[currentDateObj.getMonth()]} {currentDateObj.getFullYear()}
             </span>
             <button 
-              onClick={() => navigateMonth('next')}
+              onClick={() => handleNavigateMonth('next')}
               className="p-2 hover:bg-gray-800 rounded"
             >
               <ChevronRight className="h-4 w-4" />
@@ -302,16 +242,16 @@ const Calendar: React.FC = () => {
           
           <div className="flex items-center gap-2">
             <button 
-              onClick={() => navigateYear('prev')}
+              onClick={() => handleNavigateYear('prev')}
               className="px-2 py-1 text-xs hover:bg-gray-800 rounded"
             >
-              -{currentDate.getFullYear()}
+              -{currentDateObj.getFullYear()}
             </button>
             <button 
-              onClick={() => navigateYear('next')}
+              onClick={() => handleNavigateYear('next')}
               className="px-2 py-1 text-xs hover:bg-gray-800 rounded"
             >
-              +{currentDate.getFullYear()}
+              +{currentDateObj.getFullYear()}
             </button>
           </div>
           
@@ -319,7 +259,7 @@ const Calendar: React.FC = () => {
             <span className="text-sm text-gray-400">Sort</span>
             <select 
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
+              onChange={(e) => handleSortByChange(e.target.value as SortBy)}
               className="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm"
             >
               <option value="default">Default</option>
@@ -329,9 +269,9 @@ const Calendar: React.FC = () => {
             </select>
           </div>
           
-          {selectedDate && (
+          {selectedDateObj && (
             <button 
-              onClick={() => setSelectedDate(null)}
+              onClick={() => dispatch(clearSelectedDate())}
               className="flex items-center gap-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm"
             >
               Clear Filter
@@ -358,14 +298,14 @@ const Calendar: React.FC = () => {
               }
               
               const events = getEventsForDate(date);
-              const isSelected = isSameDate(selectedDate, date);
+              const isSelected = isSameDate(selectedDateObj, date);
               const todayClass = isToday(date) ? 'bg-blue-600 text-white' : '';
               const selectedClass = isSelected ? 'ring-2 ring-blue-400' : '';
               
               return (
                 <button
                   key={index}
-                  onClick={() => setSelectedDate(isSelected ? null : date)}
+                  onClick={() => handleDateSelect(date)}
                   className={`h-10 text-sm rounded hover:bg-gray-700 transition-colors relative ${todayClass} ${selectedClass} ${
                     events.length > 0 ? 'text-white' : 'text-gray-300'
                   }`}
@@ -389,10 +329,10 @@ const Calendar: React.FC = () => {
 
         {/* Events List */}
         <div className="flex-1 overflow-y-auto">
-          {selectedDate && (
+          {selectedDateObj && (
             <div className="mb-4 p-3 bg-gray-800 rounded-lg">
               <h3 className="text-lg font-medium">
-                Events for {selectedDate.toLocaleDateString('en-US', { 
+                Events for {selectedDateObj.toLocaleDateString('en-US', { 
                   weekday: 'long', 
                   year: 'numeric', 
                   month: 'long', 
@@ -403,56 +343,62 @@ const Calendar: React.FC = () => {
           )}
           
           <div className="space-y-4">
-            {getFilteredAndSortedEvents().map((event) => (
-              <div key={event.id} className="flex items-start gap-4 group">
-                {/* Time indicator */}
-                <div className="w-16 text-right">
-                  <div className="text-xs text-gray-400">{event.time}</div>
-                  <div className="text-xs text-gray-500">
-                    {event.date.getDate()}/{event.date.getMonth() + 1}
+            {getFilteredAndSortedEvents().map((event) => {
+              const eventDate = new Date(event.date);
+              return (
+                <div key={event.id} className="flex items-start gap-4 group">
+                  {/* Time indicator */}
+                  <div className="w-16 text-right">
+                    <div className="text-xs text-gray-400">{event.time}</div>
+                    <div className="text-xs text-gray-500">
+                      {eventDate.getDate()}/{eventDate.getMonth() + 1}
+                    </div>
                   </div>
-                </div>
-                
-                {/* Event card */}
-                <div className="relative bg-gray-800 hover:bg-gray-750 rounded-lg p-4 flex-1 transition-colors border border-gray-700">
-                  {/* Color indicator */}
-                  <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-lg ${event.color}`}></div>
                   
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-lg">{getTypeIcon(event.type)}</span>
-                      <div>
-                        <h3 className="font-medium text-white">{event.title}</h3>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-gray-400 flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {event.duration}
-                          </span>
-                          {event.participants && (
+                  {/* Event card */}
+                  <div className="relative bg-gray-800 hover:bg-gray-750 rounded-lg p-4 flex-1 transition-colors border border-gray-700">
+                    {/* Color indicator */}
+                    <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-lg ${event.color}`}></div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-lg">{getTypeIcon(event.type)}</span>
+                        <div>
+                          <h3 className="font-medium text-white">{event.title}</h3>
+                          <div className="flex items-center gap-2 mt-1">
                             <span className="text-xs text-gray-400 flex items-center gap-1">
-                              <Users className="h-3 w-3" />
-                              {event.participants}
+                              <Clock className="h-3 w-3" />
+                              {event.duration}
                             </span>
+                            {event.participants && (
+                              <span className="text-xs text-gray-400 flex items-center gap-1">
+                                <Users className="h-3 w-3" />
+                                {event.participants}
+                              </span>
+                            )}
+                            <span className={`text-xs font-medium ${getStatusColor(event.status)}`}>
+                              {event.status.replace('-', ' ').toUpperCase()}
+                            </span>
+                          </div>
+                          {event.description && (
+                            <p className="text-xs text-gray-500 mt-1">{event.description}</p>
                           )}
-                          <span className={`text-xs font-medium ${getStatusColor(event.status)}`}>
-                            {event.status.replace('-', ' ').toUpperCase()}
-                          </span>
                         </div>
                       </div>
+                      
+                      <button className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-700 rounded transition-opacity">
+                        <FileText className="h-4 w-4 text-gray-400" />
+                      </button>
                     </div>
-                    
-                    <button className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-700 rounded transition-opacity">
-                      <FileText className="h-4 w-4 text-gray-400" />
-                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             
             {getFilteredAndSortedEvents().length === 0 && (
               <div className="text-center py-12 text-gray-400">
                 <CalendarIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No events found for the selected {selectedDate ? 'date' : 'month'}</p>
+                <p>No events found for the selected {selectedDateObj ? 'date' : 'month'}</p>
               </div>
             )}
           </div>
