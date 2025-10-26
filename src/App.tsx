@@ -1,16 +1,24 @@
-import React, { useState } from 'react';
-import { Provider } from 'react-redux';
+import React, { useState, useEffect } from 'react';
+import { Provider, useDispatch } from 'react-redux';
 import { store } from './store';
 import { ProjectSidebar } from './components/Sidebar';
 import { Dashboard } from './components/Dashboard';
 import { Projects } from './components/Projects';
 import { Tasks } from './components/Tasks';
 import { Teams } from './components/Teams';
-import { Calendar } from './components/Calender'; // Add this import
+import { Calendar } from './components/Calender';
 import { cn } from './lib/utils';
+import { fetchTeams, fetchUsers } from './store/slices/teamsSlice';
 
-function App() {
+// Separate component to use Redux hooks
+const AppContent: React.FC = () => {
+  const dispatch = useDispatch();
   const [currentSection, setCurrentSection] = useState('dashboard');
+
+  useEffect(() => {
+    dispatch(fetchTeams());
+    dispatch(fetchUsers());
+  }, [dispatch]);
 
   const renderCurrentSection = () => {
     switch (currentSection) {
@@ -23,7 +31,7 @@ function App() {
       case 'teams':
         return <Teams />;
       case 'calendar':
-        return <Calendar />; // Replace the placeholder with the actual component
+        return <Calendar />;
       case 'reports':
         return (
           <div className="flex flex-1 flex-col gap-6 p-6">
@@ -48,21 +56,27 @@ function App() {
   };
 
   return (
-    <Provider store={store}>
-      <div className={cn(
-        "mx-auto flex w-full max-w-full flex-1 flex-col overflow-hidden bg-gray-50 dark:bg-gray-900 md:flex-row",
-        "h-screen"
-      )}>
-        <ProjectSidebar 
-          onNavigate={setCurrentSection}
-          currentSection={currentSection}
-        />
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <div className="flex h-full w-full flex-1 flex-col overflow-y-auto bg-white dark:bg-gray-900">
-            {renderCurrentSection()}
-          </div>
+    <div className={cn(
+      "mx-auto flex w-full max-w-full flex-1 flex-col overflow-hidden bg-gray-50 dark:bg-gray-900 md:flex-row",
+      "h-screen"
+    )}>
+      <ProjectSidebar 
+        onNavigate={setCurrentSection}
+        currentSection={currentSection}
+      />
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="flex h-full w-full flex-1 flex-col overflow-y-auto bg-white dark:bg-gray-900">
+          {renderCurrentSection()}
         </div>
       </div>
+    </div>
+  );
+};
+
+function App() {
+  return (
+    <Provider store={store}>
+      <AppContent />
     </Provider>
   );
 }

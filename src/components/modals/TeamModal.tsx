@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
-import { addTeam, updateTeam } from '../../store/slices/teamsSlice';
+import { addTeamAsync, updateTeamAsync } from '../../store/slices/teamsSlice';
 import { X } from 'lucide-react';
 
 interface TeamModalProps {
@@ -44,9 +44,9 @@ export const TeamModal: React.FC<TeamModalProps> = ({ teamId, onClose }) => {
     e.preventDefault();
     
     if (existingTeam) {
-      dispatch(updateTeam({ id: existingTeam.id, ...formData }));
+      dispatch(updateTeamAsync({ id: existingTeam.id, data: formData }));
     } else {
-      dispatch(addTeam(formData));
+      dispatch(addTeamAsync(formData));
     }
     
     onClose();

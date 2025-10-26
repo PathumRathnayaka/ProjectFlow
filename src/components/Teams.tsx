@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store';
-import { addTeam, updateTeam, deleteTeam, addUser, updateUser, deleteUser } from '../store/slices/teamsSlice';
+import { fetchTeams, fetchUsers, addTeamAsync, updateTeamAsync, deleteTeamAsync, addUserAsync, updateUserAsync, deleteUserAsync } from '../store/slices/teamsSlice';
 import { setActiveModal } from '../store/slices/uiSlice';
 import { Plus, Search, Edit, Trash2, Mail, Shield, Users, Crown, Send } from 'lucide-react';
 import { TeamModal } from './modals/TeamModal';
@@ -9,7 +9,7 @@ import { UserModal } from './modals/UserModal';
 
 export const Teams: React.FC = () => {
   const dispatch = useDispatch();
-  const { teams, users } = useSelector((state: RootState) => state.teams);
+  const { teams, users, loading, error } = useSelector((state: RootState) => state.teams);
   const { activeModal } = useSelector((state: RootState) => state.ui);
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -17,6 +17,11 @@ export const Teams: React.FC = () => {
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'teams' | 'members'>('teams');
+
+  useEffect(() => {
+    dispatch(fetchTeams());
+    dispatch(fetchUsers());
+  }, [dispatch]);
 
   const filteredTeams = teams.filter(team =>
     team.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -31,46 +36,47 @@ export const Teams: React.FC = () => {
 
   const handleCreateTeam = () => {
     setSelectedTeam(null);
-    dispatch(setActiveModal('team-modal'));
+    dispatch(setActiveModal('team-new'));
   };
 
   const handleEditTeam = (teamId: string) => {
     setSelectedTeam(teamId);
-    dispatch(setActiveModal('team-modal'));
+    dispatch(setActiveModal(`team-${teamId}`));
   };
 
   const handleDeleteTeam = (teamId: string) => {
     if (window.confirm('Are you sure you want to delete this team?')) {
-      dispatch(deleteTeam(teamId));
+      dispatch(deleteTeamAsync(teamId));
     }
   };
 
   const handleCreateUser = () => {
     setSelectedUser(null);
-    dispatch(setActiveModal('user-modal'));
+    dispatch(setActiveModal('user-new'));
   };
 
   const handleEditUser = (userId: string) => {
     setSelectedUser(userId);
-    dispatch(setActiveModal('user-modal'));
+    dispatch(setActiveModal(`user-${userId}`));
   };
 
   const handleDeleteUser = (userId: string) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
-      dispatch(deleteUser(userId));
+      dispatch(deleteUserAsync(userId));
     }
   };
 
   const handleSendEmail = () => {
     if (emailInput.trim()) {
-      // Handle email sending logic here
+      // Handle email sending logic here (unchanged from original)
       console.log('Sending email to:', emailInput);
       setEmailInput('');
     }
   };
 
   const getTeamMemberCount = (teamId: string) => {
-    return users.filter(user => user.teamId === teamId).length;
+    const team = teams.find(t => t.id === teamId);
+    return team ? team.memberIds.length : 0;
   };
 
   const getTeamName = (teamId: string) => {
@@ -235,7 +241,7 @@ export const Teams: React.FC = () => {
                 <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
                   <div className="flex -space-x-2">
                     {users
-                      .filter(user => user.teamId === team.id)
+                      .filter(user => team.memberIds.includes(user.id))
                       .slice(0, 4)
                       .map((user) => (
                         <img
@@ -376,18 +382,20 @@ export const Teams: React.FC = () => {
       )}
 
       {/* Modals */}
-      {activeModal === 'team-modal' && (
+      {activeModal?.startsWith('team-') && (
         <TeamModal
-          teamId={selectedTeam}
+          teamId={activeModal === 'team-new' ? null : activeModal.replace('team-', '')}
           onClose={() => dispatch(setActiveModal(null))}
         />
       )}
-      {activeModal === 'user-modal' && (
+      {activeModal?.startsWith('user-') && (
         <UserModal
-          userId={selectedUser}
+          userId={activeModal === 'user-new' ? null : activeModal.replace('user-', '')}
           onClose={() => dispatch(setActiveModal(null))}
         />
       )}
     </div>
   );
 };
+
+export default Teams;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
-import { addUser, updateUser } from '../../store/slices/teamsSlice';
+import { addUserAsync, updateUserAsync } from '../../store/slices/teamsSlice';
 import { X } from 'lucide-react';
 
 interface UserModalProps {
@@ -25,15 +25,6 @@ export const UserModal: React.FC<UserModalProps> = ({ userId, onClose }) => {
     isActive: true,
   });
 
-  const defaultAvatars = [
-    'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?w=150&h=150&fit=crop&crop=face',
-    'https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?w=150&h=150&fit=crop&crop=face',
-    'https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?w=150&h=150&fit=crop&crop=face',
-    'https://images.pexels.com/photos/1674752/pexels-photo-1674752.jpeg?w=150&h=150&fit=crop&crop=face',
-    'https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?w=150&h=150&fit=crop&crop=face',
-    'https://images.pexels.com/photos/1036623/pexels-photo-1036623.jpeg?w=150&h=150&fit=crop&crop=face',
-  ];
-
   useEffect(() => {
     if (existingUser) {
       setFormData({
@@ -52,9 +43,9 @@ export const UserModal: React.FC<UserModalProps> = ({ userId, onClose }) => {
     e.preventDefault();
     
     if (existingUser) {
-      dispatch(updateUser({ id: existingUser.id, ...formData }));
+      dispatch(updateUserAsync({ id: existingUser.id, data: formData }));
     } else {
-      dispatch(addUser(formData));
+      dispatch(addUserAsync(formData));
     }
     
     onClose();
@@ -184,44 +175,14 @@ export const UserModal: React.FC<UserModalProps> = ({ userId, onClose }) => {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Profile Picture
               </label>
-              <div className="flex items-center gap-4 mb-3">
-                {formData.avatar && (
-                  <img
-                    src={formData.avatar}
-                    alt="Current avatar"
-                    className="w-16 h-16 rounded-full border-2 border-gray-300 dark:border-gray-600"
-                  />
-                )}
-                <input
-                  type="url"
-                  name="avatar"
-                  value={formData.avatar}
-                  onChange={handleChange}
-                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter avatar URL"
-                />
-              </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                Or choose from default avatars:
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {defaultAvatars.map((avatar, index) => (
-                  <button
-                    key={index}
-                    type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, avatar }))}
-                    className={`w-12 h-12 rounded-full border-2 ${
-                      formData.avatar === avatar ? 'border-blue-500' : 'border-gray-300 dark:border-gray-600'
-                    }`}
-                  >
-                    <img
-                      src={avatar}
-                      alt={`Avatar ${index + 1}`}
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
+              <input
+                type="url"
+                name="avatar"
+                value={formData.avatar}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Enter avatar URL"
+              />
             </div>
           </div>
 

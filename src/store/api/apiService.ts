@@ -1,51 +1,19 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8080/api/v1/projectflow';
+const API_BASE = 'http://localhost:8080/api/v1/projectflow';
 
-const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+const api = axios.create({
+  baseURL: API_BASE,
 });
 
-// Response interceptor for error handling
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error('API Error:', error.response?.data || error.message);
-    return Promise.reject(error);
-  }
-);
+// Member (User) API functions
+export const getAllMembers = async () => (await api.get('/member')).data;
+export const createMember = async (data: any) => (await api.post('/member', data)).data;
+export const updateMember = async (id: string, data: any) => (await api.put(`/member/${id}`, data)).data;
+export const deleteMember = async (id: string) => (await api.delete(`/member/${id}`)).data;
 
-export const projectAPI = {
-  getAllProjects: () => apiClient.get('/project'),
-  getProject: (id: string) => apiClient.get(`/project/${id}`),
-  createProject: (projectData: any) => apiClient.post('/project', projectData),
-  updateProject: (id: string, projectData: any) => apiClient.put(`/project/${id}`, projectData),
-  deleteProject: (id: string) => apiClient.delete(`/project/${id}`),
-};
-
-export const taskAPI = {
-  getAllTasks: () => apiClient.get('/task'),
-  getTask: (id: string) => apiClient.get(`/task/${id}`),
-  createTask: (taskData: any) => apiClient.post('/task', taskData),
-  updateTask: (id: string, taskData: any) => apiClient.put(`/task/${id}`, taskData),
-  deleteTask: (id: string) => apiClient.delete(`/task/${id}`),
-};
-
-export const teamAPI = {
-  getAllTeams: () => apiClient.get('/team'),
-  getTeam: (id: string) => apiClient.get(`/team/${id}`),
-  createTeam: (teamData: any) => apiClient.post('/team', teamData),
-  updateTeam: (id: string, teamData: any) => apiClient.put(`/team/${id}`, teamData),
-  deleteTeam: (id: string) => apiClient.delete(`/team/${id}`),
-};
-
-export const memberAPI = {
-  getAllMembers: () => apiClient.get('/member'),
-  getMember: (id: string) => apiClient.get(`/member/${id}`),
-  createMember: (memberData: any) => apiClient.post('/member', memberData),
-  updateMember: (id: string, memberData: any) => apiClient.put(`/member/${id}`, memberData),
-  deleteMember: (id: string) => apiClient.delete(`/member/${id}`),
-};
+// Team API functions
+export const getAllTeams = async () => (await api.get('/team')).data;
+export const createTeam = async (data: any) => (await api.post('/team', data)).data;
+export const updateTeam = async (id: string, data: any) => (await api.put(`/team/${id}`, data)).data;
+export const deleteTeam = async (id: string) => (await api.delete(`/team/${id}`)).data;
