@@ -1,19 +1,63 @@
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:8080/api/v1/projectflow';
+const API_BASE_URL = 'http://localhost:8080/api/v1/projectflow';
 
-const api = axios.create({
-  baseURL: API_BASE,
-});
+// Teams
+export const getAllTeams = async () => {
+  const response = await axios.get(`${API_BASE_URL}/team`);
+  return response.data;
+};
 
-// Member (User) API functions
-export const getAllMembers = async () => (await api.get('/member')).data;
-export const createMember = async (data: any) => (await api.post('/member', data)).data;
-export const updateMember = async (id: string, data: any) => (await api.put(`/member/${id}`, data)).data;
-export const deleteMember = async (id: string) => (await api.delete(`/member/${id}`)).data;
+export const createTeam = async (data: any) => {
+  const response = await axios.post(`${API_BASE_URL}/team`, data);
+  return response.data;
+};
 
-// Team API functions
-export const getAllTeams = async () => (await api.get('/team')).data;
-export const createTeam = async (data: any) => (await api.post('/team', data)).data;
-export const updateTeam = async (id: string, data: any) => (await api.put(`/team/${id}`, data)).data;
-export const deleteTeam = async (id: string) => (await api.delete(`/team/${id}`)).data;
+export const updateTeam = async (id: string, data: any) => {
+  const response = await axios.put(`${API_BASE_URL}/team/${id}`, data);
+  return response.data;
+};
+
+export const deleteTeam = async (id: string) => {
+  await axios.delete(`${API_BASE_URL}/team/${id}`);
+};
+
+// Members (Users)
+export const getAllMembers = async () => {
+  const response = await axios.get(`${API_BASE_URL}/member`);
+  return response.data;
+};
+
+export const createMember = async (data: any) => {
+  const response = await axios.post(`${API_BASE_URL}/member`, data);
+  return response.data;
+};
+
+export const updateMember = async (id: string, data: any) => {
+  const response = await axios.put(`${API_BASE_URL}/member/${id}`, data);
+  return response.data;
+};
+
+export const deleteMember = async (id: string) => {
+  await axios.delete(`${API_BASE_URL}/member/${id}`);
+};
+
+// Projects (New additions)
+export const getAllProjects = async () => {
+  const response = await axios.get(`${API_BASE_URL}/project`);
+  return response.data;
+};
+
+export const createProject = async (data: any) => {
+  const response = await axios.post(`${API_BASE_URL}/project`, data);
+  return response.data;
+};
+
+export const updateProject = async (id: string, data: any) => {
+  const response = await axios.put(`${API_BASE_URL}/project/${id}`, data);
+  return response.data;
+};
+
+export const deleteProject = async (id: string) => {
+  await axios.delete(`${API_BASE_URL}/project/${id}`);
+};

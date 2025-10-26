@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store';
-import { addProject, updateProject, deleteProject } from '../store/slices/projectsSlice';
+import { fetchProjects, addProjectAsync, updateProjectAsync, deleteProjectAsync } from '../store/slices/projectsSlice';
 import { setActiveModal } from '../store/slices/uiSlice';
 import { Plus, Search, Filter, MoreHorizontal, Edit, Trash2, Calendar, Users } from 'lucide-react';
 import { ProjectModal } from './modals/ProjectModal';
 
-export const Projects: React.FC = () => {
+const Projects: React.FC = () => {
   const dispatch = useDispatch();
-  const { projects, folders } = useSelector((state: RootState) => state.projects);
+  const { projects, folders, loading, error } = useSelector((state: RootState) => state.projects);
   const { users, teams } = useSelector((state: RootState) => state.teams);
   const { activeModal, searchQuery } = useSelector((state: RootState) => state.ui);
   
@@ -35,7 +35,7 @@ export const Projects: React.FC = () => {
 
   const handleDeleteProject = (projectId: string) => {
     if (window.confirm('Are you sure you want to delete this project?')) {
-      dispatch(deleteProject(projectId));
+      dispatch(deleteProjectAsync(projectId));
     }
   };
 
@@ -120,6 +120,10 @@ export const Projects: React.FC = () => {
           <option value="archived">Archived</option>
         </select>
       </div>
+
+      {/* Loading and Error States */}
+      {loading && <p className="text-gray-600 dark:text-gray-400">Loading projects...</p>}
+      {error && <p className="text-red-600 dark:text-red-400">{error}</p>}
 
       {/* Projects Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -232,3 +236,5 @@ export const Projects: React.FC = () => {
     </div>
   );
 };
+
+export default Projects; // Changed from `export const Projects` to `export default Projects`

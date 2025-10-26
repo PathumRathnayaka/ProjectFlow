@@ -3,14 +3,14 @@ import { Provider, useDispatch } from 'react-redux';
 import { store } from './store';
 import { ProjectSidebar } from './components/Sidebar';
 import { Dashboard } from './components/Dashboard';
-import { Projects } from './components/Projects';
-import { Tasks } from './components/Tasks';
-import { Teams } from './components/Teams';
+import Projects from './components/Projects';
+import { Tasks } from './components/Tasks'; // Changed to named import
+import Teams from './components/Teams';
 import { Calendar } from './components/Calender';
 import { cn } from './lib/utils';
 import { fetchTeams, fetchUsers } from './store/slices/teamsSlice';
+import { fetchProjects } from './store/slices/projectsSlice';
 
-// Separate component to use Redux hooks
 const AppContent: React.FC = () => {
   const dispatch = useDispatch();
   const [currentSection, setCurrentSection] = useState('dashboard');
@@ -18,6 +18,7 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     dispatch(fetchTeams());
     dispatch(fetchUsers());
+    dispatch(fetchProjects());
   }, [dispatch]);
 
   const renderCurrentSection = () => {

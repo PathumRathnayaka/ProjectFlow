@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
-import { addProject, updateProject } from '../../store/slices/projectsSlice';
+import { addProjectAsync, updateProjectAsync } from '../../store/slices/projectsSlice';
 import { X } from 'lucide-react';
 
 interface ProjectModalProps {
@@ -50,9 +50,9 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ projectId, onClose }
     e.preventDefault();
     
     if (existingProject) {
-      dispatch(updateProject({ id: existingProject.id, ...formData }));
+      dispatch(updateProjectAsync({ id: existingProject.id, data: formData }));
     } else {
-      dispatch(addProject(formData));
+      dispatch(addProjectAsync(formData));
     }
     
     onClose();

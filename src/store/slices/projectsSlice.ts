@@ -1,4 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { getAllProjects, createProject, updateProject, deleteProject } from '../api/apiService';
 
 export interface Project {
   id: string;
@@ -31,97 +32,54 @@ interface ProjectsState {
 }
 
 const initialState: ProjectsState = {
-  projects: [
-    {
-      id: '1',
-      name: 'Website Redesign',
-      description: 'Complete overhaul of company website with modern design',
-      status: 'active',
-      priority: 'high',
-      startDate: '2024-01-15',
-      dueDate: '2024-03-15',
-      progress: 65,
-      teamId: '1',
-      ownerId: '1',
-      folderId: '1',
-      createdAt: '2024-01-15T10:00:00Z',
-      updatedAt: '2024-01-20T15:30:00Z',
-    },
-    {
-      id: '2',
-      name: 'Mobile App Development',
-      description: 'Native mobile application for iOS and Android',
-      status: 'active',
-      priority: 'urgent',
-      startDate: '2024-01-20',
-      dueDate: '2024-04-20',
-      progress: 30,
-      teamId: '2',
-      ownerId: '2',
-      folderId: '2',
-      createdAt: '2024-01-20T09:00:00Z',
-      updatedAt: '2024-01-25T11:15:00Z',
-    },
-    {
-      id: '3',
-      name: 'Marketing Campaign',
-      description: 'Q1 digital marketing campaign across all channels',
-      status: 'on-hold',
-      priority: 'medium',
-      startDate: '2024-02-01',
-      dueDate: '2024-03-31',
-      progress: 15,
-      teamId: '3',
-      ownerId: '3',
-      folderId: '1',
-      createdAt: '2024-02-01T14:00:00Z',
-      updatedAt: '2024-02-05T16:45:00Z',
-    },
-  ],
+  projects: [],
   folders: [
     {
       id: '1',
       name: 'Active Projects',
       color: '#3B82F6',
-      projectIds: ['1', '3'],
+      projectIds: [],
     },
     {
       id: '2',
       name: 'Development',
       color: '#10B981',
-      projectIds: ['2'],
+      projectIds: [],
     },
   ],
   loading: false,
   error: null,
 };
 
+export const fetchProjects = createAsyncThunk('projects/fetchProjects', async () => {
+  const projects = await getAllProjects();
+  return projects.map((project: any) => ({
+    ...project,
+    id: project._id,
+    createdAt: project.createdAt,
+    updatedAt: project.updatedAt,
+  }));
+});
+
+export const addProjectAsync = createAsyncThunk('projects/addProjectAsync', async (data: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const newProject = await createProject(data);
+  return { ...newProject, id: newProject._id, createdAt: newProject.createdAt, updatedAt: newProject.updatedAt };
+});
+
+export const updateProjectAsync = createAsyncThunk('projects/updateProjectAsync', async ({ id, data }: { id: string; data: Partial<Project> }) => {
+  const updated = await updateProject(id, data);
+  return { ...updated, id: updated._id, createdAt: updated.createdAt, updatedAt: updated.updatedAt };
+});
+
+export const deleteProjectAsync = createAsyncThunk('projects/deleteProjectAsync', async (id: string) => {
+  await deleteProject(id);
+  return id;
+});
+
 const projectsSlice = createSlice({
   name: 'projects',
   initialState,
   reducers: {
-    addProject: (state, action: PayloadAction<Omit<Project, 'id' | 'createdAt' | 'updatedAt'>>) => {
-      const newProject: Project = {
-        ...action.payload,
-        id: Date.now().toString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      state.projects.push(newProject);
-    },
-    updateProject: (state, action: PayloadAction<Partial<Project> & { id: string }>) => {
-      const index = state.projects.findIndex(p => p.id === action.payload.id);
-      if (index !== -1) {
-        state.projects[index] = {
-          ...state.projects[index],
-          ...action.payload,
-          updatedAt: new Date().toISOString(),
-        };
-      }
-    },
-    deleteProject: (state, action: PayloadAction<string>) => {
-      state.projects = state.projects.filter(p => p.id !== action.payload);
-    },
     addFolder: (state, action: PayloadAction<Omit<ProjectFolder, 'id'>>) => {
       const newFolder: ProjectFolder = {
         ...action.payload,
@@ -138,24 +96,39 @@ const projectsSlice = createSlice({
     deleteFolder: (state, action: PayloadAction<string>) => {
       state.folders = state.folders.filter(f => f.id !== action.payload);
     },
-    setLoading: (state, action: PayloadAction<boolean>) => {
-      state.loading = action.payload;
-    },
-    setError: (state, action: PayloadAction<string | null>) => {
-      state.error = action.payload;
-    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchProjects.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchProjects.fulfilled, (state, action) => {
+        state.loading = false;
+        state.projects = action.payload;
+      })
+      .addCase(fetchProjects.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch projects';
+      })
+      .addCase(addProjectAsync.fulfilled, (state, action) => {
+        state.projects.push(action.payload);
+      })
+      .addCase(updateProjectAsync.fulfilled, (state, action) => {
+        const index = state.projects.findIndex((p) => p.id === action.payload.id);
+        if (index !== -1) {
+          state.projects[index] = action.payload;
+        }
+      })
+      .addCase(deleteProjectAsync.fulfilled, (state, action) => {
+        state.projects = state.projects.filter((p) => p.id !== action.payload);
+      });
   },
 });
 
 export const {
-  addProject,
-  updateProject,
-  deleteProject,
   addFolder,
   updateFolder,
   deleteFolder,
-  setLoading,
-  setError,
 } = projectsSlice.actions;
 
 export default projectsSlice.reducer;
