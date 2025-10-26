@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8080/api/v1/projectflow';
+const API_BASE_URL = 'https://project-flow-express-js-back-end.vercel.app/api/v1/projectflow';
 
 // Teams
 export const getAllTeams = async () => {
