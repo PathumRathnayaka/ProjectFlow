@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store';
-import { addTask, updateTask, deleteTask, updateTaskStatus } from '../store/slices/tasksSlice';
+import { addTaskAsync, updateTaskAsync, deleteTaskAsync, updateTaskStatusAsync } from '../store/slices/tasksSlice';
 import { setActiveModal, setCurrentView } from '../store/slices/uiSlice';
 import { Plus, Search, Filter, Table, Columns, List, Edit, Trash2, Calendar, User } from 'lucide-react';
 import { TaskModal } from './modals/TaskModal';
@@ -9,7 +9,7 @@ import { KanbanBoard } from './KanbanBoard';
 
 export const Tasks: React.FC = () => {
   const dispatch = useDispatch();
-  const { tasks } = useSelector((state: RootState) => state.tasks);
+  const { tasks, loading, error } = useSelector((state: RootState) => state.tasks);
   const { projects } = useSelector((state: RootState) => state.projects);
   const { users } = useSelector((state: RootState) => state.teams);
   const { activeModal, currentView } = useSelector((state: RootState) => state.ui);
@@ -39,7 +39,7 @@ export const Tasks: React.FC = () => {
 
   const handleDeleteTask = (taskId: string) => {
     if (window.confirm('Are you sure you want to delete this task?')) {
-      dispatch(deleteTask(taskId));
+      dispatch(deleteTaskAsync(taskId));
     }
   };
 
@@ -166,6 +166,10 @@ export const Tasks: React.FC = () => {
           ))}
         </select>
       </div>
+
+      {/* Loading and Error States */}
+      {loading && <p className="text-gray-600 dark:text-gray-400">Loading tasks...</p>}
+      {error && <p className="text-red-600 dark:text-red-400">{error}</p>}
 
       {/* Content */}
       {currentView === 'kanban' ? (

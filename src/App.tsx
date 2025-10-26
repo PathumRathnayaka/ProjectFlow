@@ -4,12 +4,13 @@ import { store } from './store';
 import { ProjectSidebar } from './components/Sidebar';
 import { Dashboard } from './components/Dashboard';
 import Projects from './components/Projects';
-import { Tasks } from './components/Tasks'; // Changed to named import
+import { Tasks } from './components/Tasks';
 import Teams from './components/Teams';
 import { Calendar } from './components/Calender';
 import { cn } from './lib/utils';
 import { fetchTeams, fetchUsers } from './store/slices/teamsSlice';
 import { fetchProjects } from './store/slices/projectsSlice';
+import { fetchTasks } from './store/slices/tasksSlice';
 
 const AppContent: React.FC = () => {
   const dispatch = useDispatch();
@@ -19,6 +20,7 @@ const AppContent: React.FC = () => {
     dispatch(fetchTeams());
     dispatch(fetchUsers());
     dispatch(fetchProjects());
+    dispatch(fetchTasks());
   }, [dispatch]);
 
   const renderCurrentSection = () => {

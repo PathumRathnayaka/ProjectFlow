@@ -1,4 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { getAllTasks, createTask, updateTask, deleteTask } from '../api/apiService';
 
 export interface Task {
   id: string;
@@ -13,8 +14,6 @@ export interface Task {
   estimatedHours: number;
   actualHours: number;
   tags: string[];
-  createdAt: string;
-  updatedAt: string;
 }
 
 interface TasksState {
@@ -24,125 +23,76 @@ interface TasksState {
 }
 
 const initialState: TasksState = {
-  tasks: [
-    {
-      id: '1',
-      title: 'Design Homepage Mockup',
-      description: 'Create high-fidelity mockup for the new homepage design',
-      status: 'completed',
-      priority: 'high',
-      projectId: '1',
-      assigneeId: '1',
-      reporterId: '1',
-      dueDate: '2024-01-25',
-      estimatedHours: 16,
-      actualHours: 14,
-      tags: ['design', 'ui/ux'],
-      createdAt: '2024-01-15T10:00:00Z',
-      updatedAt: '2024-01-24T16:30:00Z',
-    },
-    {
-      id: '2',
-      title: 'Implement User Authentication',
-      description: 'Set up secure user authentication system with JWT tokens',
-      status: 'in-progress',
-      priority: 'urgent',
-      projectId: '2',
-      assigneeId: '2',
-      reporterId: '2',
-      dueDate: '2024-02-05',
-      estimatedHours: 24,
-      actualHours: 18,
-      tags: ['backend', 'security'],
-      createdAt: '2024-01-20T09:00:00Z',
-      updatedAt: '2024-01-30T11:15:00Z',
-    },
-    {
-      id: '3',
-      title: 'Content Strategy Planning',
-      description: 'Develop comprehensive content strategy for Q1 campaign',
-      status: 'scheduled',
-      priority: 'medium',
-      projectId: '3',
-      assigneeId: '3',
-      reporterId: '3',
-      dueDate: '2024-02-10',
-      estimatedHours: 12,
-      actualHours: 0,
-      tags: ['marketing', 'content'],
-      createdAt: '2024-02-01T14:00:00Z',
-      updatedAt: '2024-02-01T14:00:00Z',
-    },
-    {
-      id: '4',
-      title: 'API Documentation',
-      description: 'Create comprehensive API documentation for all endpoints',
-      status: 'new',
-      priority: 'low',
-      projectId: '2',
-      assigneeId: '2',
-      reporterId: '1',
-      dueDate: '2024-02-15',
-      estimatedHours: 8,
-      actualHours: 0,
-      tags: ['documentation', 'api'],
-      createdAt: '2024-01-25T12:00:00Z',
-      updatedAt: '2024-01-25T12:00:00Z',
-    },
-  ],
+  tasks: [],
   loading: false,
   error: null,
 };
 
+export const fetchTasks = createAsyncThunk('tasks/fetchTasks', async () => {
+  const tasks = await getAllTasks();
+  return tasks.map((task: any) => ({
+    ...task,
+    id: task._id,
+    tags: task.tags || [],
+  }));
+});
+
+export const addTaskAsync = createAsyncThunk('tasks/addTaskAsync', async (data: Omit<Task, 'id'>) => {
+  const newTask = await createTask(data);
+  return { ...newTask, id: newTask._id, tags: newTask.tags || [] };
+});
+
+export const updateTaskAsync = createAsyncThunk('tasks/updateTaskAsync', async ({ id, data }: { id: string; data: Partial<Task> }) => {
+  const updated = await updateTask(id, data);
+  return { ...updated, id: updated._id, tags: updated.tags || [] };
+});
+
+export const deleteTaskAsync = createAsyncThunk('tasks/deleteTaskAsync', async (id: string) => {
+  await deleteTask(id);
+  return id;
+});
+
+export const updateTaskStatusAsync = createAsyncThunk('tasks/updateTaskStatusAsync', async ({ id, status }: { id: string; status: Task['status'] }) => {
+  const updated = await updateTask(id, { status });
+  return { ...updated, id: updated._id, tags: updated.tags || [] };
+});
+
 const tasksSlice = createSlice({
   name: 'tasks',
   initialState,
-  reducers: {
-    addTask: (state, action: PayloadAction<Omit<Task, 'id' | 'createdAt' | 'updatedAt'>>) => {
-      const newTask: Task = {
-        ...action.payload,
-        id: Date.now().toString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      state.tasks.push(newTask);
-    },
-    updateTask: (state, action: PayloadAction<Partial<Task> & { id: string }>) => {
-      const index = state.tasks.findIndex(t => t.id === action.payload.id);
-      if (index !== -1) {
-        state.tasks[index] = {
-          ...state.tasks[index],
-          ...action.payload,
-          updatedAt: new Date().toISOString(),
-        };
-      }
-    },
-    deleteTask: (state, action: PayloadAction<string>) => {
-      state.tasks = state.tasks.filter(t => t.id !== action.payload);
-    },
-    updateTaskStatus: (state, action: PayloadAction<{ id: string; status: Task['status'] }>) => {
-      const task = state.tasks.find(t => t.id === action.payload.id);
-      if (task) {
-        task.status = action.payload.status;
-        task.updatedAt = new Date().toISOString();
-      }
-    },
-    setLoading: (state, action: PayloadAction<boolean>) => {
-      state.loading = action.payload;
-    },
-    setError: (state, action: PayloadAction<string | null>) => {
-      state.error = action.payload;
-    },
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchTasks.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchTasks.fulfilled, (state, action) => {
+        state.loading = false;
+        state.tasks = action.payload;
+      })
+      .addCase(fetchTasks.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch tasks';
+      })
+      .addCase(addTaskAsync.fulfilled, (state, action) => {
+        state.tasks.push(action.payload);
+      })
+      .addCase(updateTaskAsync.fulfilled, (state, action) => {
+        const index = state.tasks.findIndex((t) => t.id === action.payload.id);
+        if (index !== -1) {
+          state.tasks[index] = action.payload;
+        }
+      })
+      .addCase(updateTaskStatusAsync.fulfilled, (state, action) => {
+        const index = state.tasks.findIndex((t) => t.id === action.payload.id);
+        if (index !== -1) {
+          state.tasks[index] = action.payload;
+        }
+      })
+      .addCase(deleteTaskAsync.fulfilled, (state, action) => {
+        state.tasks = state.tasks.filter((t) => t.id !== action.payload);
+      });
   },
 });
-
-export const {
-  addTask,
-  updateTask,
-  deleteTask,
-  updateTaskStatus,
-  setLoading,
-  setError,
-} = tasksSlice.actions;
 
 export default tasksSlice.reducer;

@@ -1,12 +1,12 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
-import { updateTaskStatus, Task } from '../store/slices/tasksSlice';
+import { updateTaskStatusAsync } from '../store/slices/tasksSlice';
 import { setActiveModal } from '../store/slices/uiSlice';
 import { Plus, Calendar, User } from 'lucide-react';
 
 interface KanbanBoardProps {
-  tasks: Task[];
+  tasks: any[];
 }
 
 export const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks }) => {
@@ -66,7 +66,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks }) => {
     const currentStatus = e.dataTransfer.getData('currentStatus');
     
     if (taskId && currentStatus !== newStatus) {
-      dispatch(updateTaskStatus({ id: taskId, status: newStatus as Task['status'] }));
+      dispatch(updateTaskStatusAsync({ id: taskId, status: newStatus as any }));
     }
   };
 

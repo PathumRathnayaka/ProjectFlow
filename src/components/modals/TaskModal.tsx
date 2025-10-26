@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
-import { addTask, updateTask } from '../../store/slices/tasksSlice';
+import { addTaskAsync, updateTaskAsync } from '../../store/slices/tasksSlice';
 import { X } from 'lucide-react';
 
 interface TaskModalProps {
@@ -55,9 +55,9 @@ export const TaskModal: React.FC<TaskModalProps> = ({ taskId, onClose }) => {
     e.preventDefault();
     
     if (existingTask) {
-      dispatch(updateTask({ id: existingTask.id, ...formData }));
+      dispatch(updateTaskAsync({ id: existingTask.id, data: formData }));
     } else {
-      dispatch(addTask(formData));
+      dispatch(addTaskAsync(formData));
     }
     
     onClose();

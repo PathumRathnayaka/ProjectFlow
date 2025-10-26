@@ -42,7 +42,7 @@ export const deleteMember = async (id: string) => {
   await axios.delete(`${API_BASE_URL}/member/${id}`);
 };
 
-// Projects (New additions)
+// Projects
 export const getAllProjects = async () => {
   const response = await axios.get(`${API_BASE_URL}/project`);
   return response.data;
@@ -60,4 +60,24 @@ export const updateProject = async (id: string, data: any) => {
 
 export const deleteProject = async (id: string) => {
   await axios.delete(`${API_BASE_URL}/project/${id}`);
+};
+
+// Tasks
+export const getAllTasks = async () => {
+  const response = await axios.get(`${API_BASE_URL}/task`);
+  return response.data;
+};
+
+export const createTask = async (data: any) => {
+  const response = await axios.post(`${API_BASE_URL}/task`, data);
+  return response.data;
+};
+
+export const updateTask = async (id: string, data: any) => {
+  const response = await axios.put(`${API_BASE_URL}/task/${id}`, data);
+  return response.data;
+};
+
+export const deleteTask = async (id: string) => {
+  await axios.delete(`${API_BASE_URL}/task/${id}`);
 };
